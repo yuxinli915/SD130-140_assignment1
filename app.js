@@ -55,6 +55,21 @@ function stopSearch(streetKey) {
       }
     })
     .then(stopList => {
-      console.log(stopList.stops);
+      const stopSchedule = [];
+      stopList.stops.forEach(stop => {
+        stopSchedule.push(fetch(`https://api.winnipegtransit.com/v3/stops/${stop.key}/schedule.json?api-key=${apiKey}`)
+          .then(data => {
+            if (data.ok) {
+              return data.json();
+            } else {
+              throw new Error(`Fail to retrieve data.`);
+            }
+          })
+          .then(result => {
+            return result[`stop-schedule`];
+          })
+          )
+      })
+      Promise.all(stopSchedule).then(data => console.log(data));
     })
 }
