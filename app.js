@@ -1,6 +1,7 @@
 const apiKey = `G0ZNynR9C1I5fFkrMET`;
 const searchForm = document.querySelector(`form`);
 const inputArea = document.querySelector(`input`);
+const streetListSec = document.querySelector(`.streets`);
 
 searchForm.addEventListener(`submit`, event => {
   if (inputArea.value !== ``) {
@@ -20,5 +21,13 @@ function retrieveStreetList(keyword) {
         throw new Error `Fail to retrieve data.`;
       }
     })
-    .then(data => console.log(data.streets));
+    .then(data => displayStreetList(data.streets));
+}
+
+function displayStreetList(streetList) {
+  let html = ``;
+  streetList.forEach(street => {
+    html += `<a href="#" data-street-key="${street.key}">${street.name}</a>`;
+  });
+  streetListSec.innerHTML = html;
 }

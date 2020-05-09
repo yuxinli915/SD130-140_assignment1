@@ -21,7 +21,7 @@ aside {
 
 .streets a {
   background-color: transparent;
-  display: block;
+  display: table;
   color: #40ba9b;
   margin: 20px 0;
 }
