@@ -16,6 +16,7 @@ searchForm.addEventListener(`submit`, event => {
 streetListSec.addEventListener(`click`, event => {
   if (event.target.tagName === `A`) {
     stopSearch(event.target.dataset.streetKey);
+    document.querySelector(`#street-name`).innerText = `Displaying results for "${event.target.innerText}"`;
   }
 })
 
@@ -70,6 +71,10 @@ function stopSearch(streetKey) {
           })
           )
       })
-      Promise.all(stopSchedule).then(data => console.log(data));
+      Promise.all(stopSchedule).then(stopScheduleList => displayStopSchedule(stopScheduleList));
     })
+}
+
+function displayStopSchedule(stopScheduleList) {
+  
 }
