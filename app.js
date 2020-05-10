@@ -16,6 +16,7 @@ searchForm.addEventListener(`submit`, event => {
 streetListSec.addEventListener(`click`, event => {
   if (event.target.tagName === `A`) {
     stopSearch(event.target.dataset.streetKey);
+    document.querySelector(`#street-name`).innerText = `Displaying results for "${event.target.innerText}"`;
   }
 })
 
@@ -55,6 +56,51 @@ function stopSearch(streetKey) {
       }
     })
     .then(stopList => {
-      console.log(stopList.stops);
+      const stopSchedule = [];
+      stopList.stops.forEach(stop => {
+        stopSchedule.push(fetch(`https://api.winnipegtransit.com/v3/stops/${stop.key}/schedule.json?api-key=${apiKey}&max-results-per-route=2`)
+          .then(data => {
+            if (data.ok) {
+              return data.json();
+            } else {
+              throw new Error(`Fail to retrieve data.`);
+            }
+          })
+          .then(result => {
+            return result[`stop-schedule`];
+          })
+        )
+      })
+      Promise.all(stopSchedule).then(stopScheduleList => {
+        displayStopSchedule(stopScheduleList);
+      });
     })
+}
+
+function displayStopSchedule(stopScheduleList) {
+  const scheduleTable = document.querySelector(`tbody`);
+  let html = ``;
+  stopScheduleList.forEach(stop => {
+    stop[`route-schedules`].forEach(route => {
+      route[`scheduled-stops`].forEach(time => {
+        if (time.times.arrival !== undefined) {
+          const originalTime = new Date(time.times.arrival.estimated);
+          const timeOption = { hour: '2-digit', minute: '2-digit' };
+          const formattedTime = originalTime.toLocaleTimeString([], timeOption);
+
+          html += `
+            <tr>
+              <td>${stop.stop.street.name}</td>
+              <td>${stop.stop[`cross-street`].name}</td>
+              <td>${stop.stop.direction}</td>
+              <td>${route.route.key}</td>
+              <td>${formattedTime}</td>
+            </tr>
+          `;
+        } 
+      })
+    })
+  })
+
+  scheduleTable.innerHTML = html;
 }
