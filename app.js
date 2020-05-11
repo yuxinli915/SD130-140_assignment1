@@ -9,13 +9,13 @@ const busInfoPerRoute = 1;
 
 searchForm.addEventListener(`submit`, event => {
 
-  if (inputArea.value !== ``) {
+  if (inputArea.value.trim() !== ``) {
     retrieveStreetList(inputArea.value);
+    scheduleTable.innerHTML = ``;
+    titleBarStreetName.innerText = ``;
   }
-
-  scheduleTable.innerHTML = ``;
+  
   inputArea.value = ``;
-  titleBarStreetName.innerText = ``;
   event.preventDefault();
 })
 
@@ -66,7 +66,7 @@ function retrieveStopList(streetKey) {
             })
         )
       })
-      
+
       Promise.all(stopSchedule)
         .then(stopScheduleList => {
         updateStopSchedule(stopScheduleList);
