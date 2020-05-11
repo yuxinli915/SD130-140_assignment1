@@ -1,9 +1,11 @@
-const apiKey = `G0ZNynR9C1I5fFkrMET`;
+const apiMainUrl = `https://api.winnipegtransit.com/v3`;
+const apiKey = `api-key=G0ZNynR9C1I5fFkrMET`;
 const searchForm = document.querySelector(`form`);
 const inputArea = document.querySelector(`input`);
 const streetListSec = document.querySelector(`.streets`);
 const scheduleTable = document.querySelector(`tbody`);
 const titleBarStreetName = document.querySelector(`#street-name`);
+const busInfoPerRoute = 1;
 
 searchForm.addEventListener(`submit`, event => {
 
@@ -25,7 +27,7 @@ streetListSec.addEventListener(`click`, event => {
 })
 
 function retrieveStreetList(keyword) {
-  fetch(`https://api.winnipegtransit.com/v3/streets.json?api-key=${apiKey}&name=${keyword}&usage=long`)
+  fetch(`${apiMainUrl}/streets.json?${apiKey}&name=${keyword}&usage=long`)
     .then(data => {
       if (data.ok) {
         return data.json();
@@ -38,7 +40,7 @@ function retrieveStreetList(keyword) {
 
 
 function retrieveStopList(streetKey) {
-  fetch(`https://api.winnipegtransit.com/v3/stops.json?api-key=${apiKey}&street=${streetKey}`)
+  fetch(`${apiMainUrl}/stops.json?${apiKey}&street=${streetKey}`)
     .then(data => {
       if (data.ok) {
         return data.json();
@@ -51,21 +53,25 @@ function retrieveStopList(streetKey) {
 
       stopList.stops.forEach(stop => {
         stopSchedule.push(
-          fetch(`https://api.winnipegtransit.com/v3/stops/${stop.key}/schedule.json?api-key=${apiKey}&max-results-per-route=2`)
-          .then(data => {
-            if (data.ok) {
-              return data.json();
-            } else {
-              throw new Error(`Fail to retrieve data.`);
-            }
-          })
-          .then(result => {
-            return result[`stop-schedule`];
-          })
+          fetch(`${apiMainUrl}/stops/${stop.key}/schedule.json?${apiKey}&max-results-per-route=${busInfoPerRoute}`)
+            .then(data => {
+              if (data.ok) {
+                return data.json();
+              } else {
+                throw new Error(`Fail to retrieve data.`);
+              }
+            })
+            .then(result => {
+              return result[`stop-schedule`];
+            })
         )
       })
-      Promise.all(stopSchedule).then(stopScheduleList => updateStopSchedule(stopScheduleList));
-      updateTitle(stopList);
+      
+      Promise.all(stopSchedule)
+        .then(stopScheduleList => {
+        updateStopSchedule(stopScheduleList);
+        updateTitle(stopList);
+      });
     })
 }
 
@@ -96,21 +102,19 @@ function updateStreetList(streetList) {
 
 function updateStopSchedule(stopScheduleList) {
   let html = ``;
+
   stopScheduleList.forEach(stop => {
     stop[`route-schedules`].forEach(route => {
       route[`scheduled-stops`].forEach(time => {
-        if (time.times.arrival !== undefined) {
-          const originalTime = new Date(time.times.arrival.estimated);
-          const timeOption = { hour: '2-digit', minute: '2-digit' };
-          const formattedTime = originalTime.toLocaleTimeString([], timeOption);
 
+        if (time.times.arrival !== undefined) {
           html += `
             <tr>
               <td>${stop.stop.street.name}</td>
               <td>${stop.stop[`cross-street`].name}</td>
               <td>${stop.stop.direction}</td>
               <td>${route.route.key}</td>
-              <td>${formattedTime}</td>
+              <td>${formatTime(time.times.arrival.estimated)}</td>
             </tr>
           `;
         } 
@@ -119,4 +123,8 @@ function updateStopSchedule(stopScheduleList) {
   })
 
   scheduleTable.innerHTML = html;
+}
+
+function formatTime(time) {
+  return new Date(time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
