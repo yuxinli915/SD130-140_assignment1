@@ -64,7 +64,7 @@ function retrieveStopList(streetKey) {
             .then(result => {
               return result[`stop-schedule`];
             })
-        )
+        );
       })
 
       Promise.all(stopSchedule)
